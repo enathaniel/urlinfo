@@ -4,8 +4,8 @@ import os
 from flask import current_app
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
-from ..model import db
-from ..model.urlinfo import UrlInfo
+from ..model import db, UrlInfo
+from . import UrlInfoRepository
 
 def initialize(app):
 	instance_db_path = os.path.join(app.instance_path, app.config['DATABASE'])
@@ -29,7 +29,7 @@ def register_command(app):
 def init_db_command():
 	db = initialize(current_app)
 	current_app.logger.info("DB -- Initializing Database")
-	from ..model.urlinfo import UrlInfo
+	from ..model import UrlInfo
 	db.create_all()
 	db.session.commit()
 	current_app.logger.info("DB -- Database is created")
@@ -38,18 +38,17 @@ def init_db_command():
 @with_appcontext
 def seed_db_command():
 	current_app.logger.info("DB -- Seeding Database")
-	db.session.add_all([
+	repository = UrlInfoRepository(db.session)
+	repository.add_all([
 		UrlInfo("www.google.com:8080/index.html", 0),
 		UrlInfo("www.google.com:8080/index.html%3Fname%3Dedwin", 1),
 		UrlInfo("example.com/%E5%BC%95%E3%81%8D%E5%89%B2%E3%82%8A.html", 0)
 	])
-	db.session.commit()
 	current_app.logger.info("DB -- Database is seeded")
 
 @click.command('clear-db')
 @with_appcontext
 def clear_db_command():
 	current_app.logger.info("DB -- Deleting Database")
-	UrlInfo.query.delete()
-	db.session.commit()
+	repository = UrlInfoRepository(db.session).delete_all()
 	current_app.logger.info("DB -- Database is deleted")

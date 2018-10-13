@@ -6,9 +6,9 @@ CONFIGS = {
     "default": "urlinfo.config.DevelopmentConfig"
 }
 
-def configure_app(app):
-    config_name = os.getenv('FLASK_CONFIGURATION', 'default')
-    app.config.from_object(CONFIGS[config_name]) # object-based default configuration
+def configure_app(app, config_name=None):
+    config_name_touse = os.getenv('FLASK_CONFIGURATION', 'default') if config_name == None else config_name
+    app.config.from_object(CONFIGS[config_name_touse]) # object-based default configuration
     #app.config.from_pyfile('config.cfg', silent=True) # instance-folders configuration
 
 class DefaultConfig(object):
