@@ -1,11 +1,11 @@
-import os
+import os, inspect
 from flask import Flask, jsonify, request
 from . import config
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
-    config.configure_app(app)
+    config.configure_app(app, test_config)
 
     # ensure the instance folder exists
     try:

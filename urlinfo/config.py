@@ -25,3 +25,4 @@ class DevelopmentConfig(DefaultConfig):
 class TestingConfig(DefaultConfig):
     DEBUG = False
     TESTING = True
+    DATABASE = 'test_urlinfo.sqlite' #override for testing

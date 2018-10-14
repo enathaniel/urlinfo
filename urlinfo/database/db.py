@@ -13,8 +13,8 @@ def initialize(app):
 	# Windows: sqlite:/// vs non-Windows: sqlite:////
 	db_connection_template =  '{0}:///{1}' if os.name == 'nt' else  '{0}:////{1}'
 	app.config['SQLALCHEMY_DATABASE_URI'] = db_connection_template.format(app.config['DB_ENGINE'],instance_db_path)
+	app.logger.info("SQLALCHEMY_DATABASE_URI: " + app.config['SQLALCHEMY_DATABASE_URI'])
 	db.init_app(app)
-	register_command(app)
 	return db;
 
 def register_command(app):
@@ -27,28 +27,38 @@ def register_command(app):
 @click.command('init-db')
 @with_appcontext
 def init_db_command():
-	db = initialize(current_app)
-	current_app.logger.info("DB -- Initializing Database")
-	from ..model import UrlInfo
-	db.create_all()
-	db.session.commit()
-	current_app.logger.info("DB -- Database is created")
+	init_db(current_app)
+	register_command(current_app)
 
 @click.command('seed-db')
 @with_appcontext
 def seed_db_command():
-	current_app.logger.info("DB -- Seeding Database")
+	seed_db(current_app)
+
+@click.command('clear-db')
+@with_appcontext
+def clear_db_command():
+	clear_db(current_app)
+
+def init_db(app):
+	app.logger.info("DB -- Initializing Database")
+	db = initialize(app)
+	from ..model import UrlInfo
+	db.create_all()
+	db.session.commit()
+	app.logger.info("DB -- Database is created")
+
+def seed_db(app):
+	app.logger.info("DB -- Seeding Database")
 	repository = UrlInfoRepository(db.session)
 	repository.add_all([
 		UrlInfo("www.google.com:8080/index.html", 0),
 		UrlInfo("www.google.com:8080/index.html%3Fname%3Dedwin", 1),
 		UrlInfo("example.com/%E5%BC%95%E3%81%8D%E5%89%B2%E3%82%8A.html", 0)
 	])
-	current_app.logger.info("DB -- Database is seeded")
+	app.logger.info("DB -- Database is seeded")	
 
-@click.command('clear-db')
-@with_appcontext
-def clear_db_command():
-	current_app.logger.info("DB -- Deleting Database")
+def clear_db(app):
+	app.logger.info("DB -- Clear the Database")
 	repository = UrlInfoRepository(db.session).delete_all()
-	current_app.logger.info("DB -- Database is deleted")
+	app.logger.info("DB -- Database is Cleared")
