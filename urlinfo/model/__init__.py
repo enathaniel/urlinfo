@@ -5,7 +5,7 @@ import urllib
 class MultiTenantSQLAlchemy(SQLAlchemy):
     def choose_tenant(self, bind_key):
         if hasattr(g, 'tenant'):
-        	print('Previous tenant: ' + g.tenant)
+        	pass
             #raise RuntimeError('Switching tenant in the middle of the request.')
         g.tenant = bind_key
 
@@ -52,3 +52,22 @@ class UrlInfo(db.Model):
 		malware: [{2}]
 		""".format(self.id, self.url, self.malware)
 		return s
+
+class UrlInfoRepository:
+	def __init__(self, db_session):
+		self.session = db_session
+
+	def add(self, url_info):
+		self.session.add(url_info)
+		self.session.commit()
+
+	def add_all(self, url_infos):
+		self.session.add_all(url_infos)
+		self.session.commit()
+
+	def get(self, url_info):
+		return self.session.query(UrlInfo).filter_by(url=url_info.url).first_or_404()
+
+	def delete_all(self):
+		self.session.query(UrlInfo).delete()
+		self.session.commit()

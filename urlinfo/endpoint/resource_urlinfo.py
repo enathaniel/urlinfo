@@ -1,7 +1,6 @@
 from flask import Flask, Blueprint, current_app, jsonify, request
 import urllib
-from ..database import UrlInfoRepository
-from ..model import UrlInfoParams, UrlInfo, db
+from ..model import UrlInfoParams, UrlInfo, UrlInfoRepository, db
 
 bp = Blueprint('resource_urlinfo', __name__)
 
