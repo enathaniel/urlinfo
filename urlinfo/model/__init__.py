@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.declarative import declarative_base
 import urllib
 
 db = SQLAlchemy()
@@ -21,7 +22,7 @@ class UrlInfoParams:
 		return urlinfo
 
 class UrlInfo(db.Model):
-
+	__tablename__ = 'url_info'
 	id = db.Column(db.Integer, primary_key=True)
 	url = db.Column(db.String, unique=True, nullable=False)
 	malware = db.Column(db.Integer, nullable=False)

@@ -16,6 +16,10 @@ class DefaultConfig(object):
     TESTING = False
     DB_ENGINE = "sqlite"
     DATABASE = 'urlinfo.sqlite'
+    SHARDS = {
+        'db1': 'db1',
+        'db2': 'db2'
+    }    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class DevelopmentConfig(DefaultConfig):

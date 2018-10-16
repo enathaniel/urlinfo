@@ -14,7 +14,15 @@ def initialize(app):
 	db_connection_template =  '{0}:///{1}' if os.name == 'nt' else  '{0}:////{1}'
 	app.config['SQLALCHEMY_DATABASE_URI'] = db_connection_template.format(app.config['DB_ENGINE'],instance_db_path)
 	app.logger.info("SQLALCHEMY_DATABASE_URI: " + app.config['SQLALCHEMY_DATABASE_URI'])
+
+	if app.config['SHARDS'] is not None:
+		app.config['SQLALCHEMY_BINDS'] = {}
+		for key, value in app.config['SHARDS'].iteritems():
+			shard_db = db_connection_template.format(app.config['DB_ENGINE'] ,instance_db_path + '.' + value )
+			app.config['SQLALCHEMY_BINDS'][key] = shard_db
+
 	db.init_app(app)
+	register_command(app)
 	return db;
 
 def register_command(app):
