@@ -109,6 +109,6 @@ chmod a+x run.sh
 Go to http://127.0.0.1:5000/urlinfo/1/{host_and_port}/{original_path_and_query_string}
 
 For example:
-Testing unicode: http://127.0.0.1:5000/urlinfo/1/example.com/&#24341;&#12365;&#21106;&#12426;.html
+Testing unicode: http://127.0.0.1:5000/urlinfo/1/example.com/%E5%BC%95%E3%81%8D%E5%89%B2%E3%82%8A.html
 Testing query-string: www.google.com:8080/index.html?name=edwin
 
