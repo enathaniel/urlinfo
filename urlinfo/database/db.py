@@ -30,8 +30,6 @@ def register_command(app):
 	app.cli.add_command(seed_db_command)
 	app.cli.add_command(clear_db_command)
 
-
-
 @click.command('init-db')
 @with_appcontext
 def init_db_command():
@@ -52,8 +50,16 @@ def init_db(app):
 	app.logger.info("DB -- Initializing Database")
 	db = initialize(app)
 	from ..model import UrlInfo
-	db.create_all()
-	db.session.commit()
+
+	binds = app.config['SQLALCHEMY_BINDS']
+
+	if binds is not None:
+		for key, value in binds.iteritems():
+			db.choose_tenant(key)
+			db.create_all()
+			db.session.commit()
+			db.session.close()
+			db.session.remove()
 	app.logger.info("DB -- Database is created")
 
 def seed_db(app):

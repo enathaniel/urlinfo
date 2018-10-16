@@ -1,8 +1,22 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.ext.declarative import declarative_base
+from flask import g
 import urllib
 
-db = SQLAlchemy()
+class MultiTenantSQLAlchemy(SQLAlchemy):
+    def choose_tenant(self, bind_key):
+        if hasattr(g, 'tenant'):
+        	print('Previous tenant: ' + g.tenant)
+            #raise RuntimeError('Switching tenant in the middle of the request.')
+        g.tenant = bind_key
+
+    def get_engine(self, app=None, bind=None):
+        if bind is None:
+            if not hasattr(g, 'tenant'):
+                raise RuntimeError('No tenant chosen.')
+            bind = g.tenant
+        return super(MultiTenantSQLAlchemy, self).get_engine(app=app, bind=bind)
+
+db = MultiTenantSQLAlchemy()
 
 class UrlInfoParams:
 	def __init__(self, url_path, url_full_path, host_and_port, original_path_query_string=None):
