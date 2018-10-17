@@ -4,6 +4,7 @@ import os
 from flask import current_app
 from flask.cli import with_appcontext
 from flask_sqlalchemy import SQLAlchemy
+from uhashring import HashRing
 from ..model import db, UrlInfo, UrlInfoRepository
 
 def initialize(app):
@@ -12,13 +13,15 @@ def initialize(app):
 	# Windows: sqlite:/// vs non-Windows: sqlite:////
 	db_connection_template =  '{0}:///{1}' if os.name == 'nt' else  '{0}:////{1}'
 	app.config['SQLALCHEMY_DATABASE_URI'] = db_connection_template.format(app.config['DB_ENGINE'],instance_db_path)
-	#app.logger.info("SQLALCHEMY_DATABASE_URI: " + app.config['SQLALCHEMY_DATABASE_URI'])
 
 	if app.config['SHARDS'] is not None:
 		app.config['SQLALCHEMY_BINDS'] = {}
+		nodes = {}
 		for key, value in app.config['SHARDS'].iteritems():
 			shard_db = db_connection_template.format(app.config['DB_ENGINE'] ,instance_db_path + '.' + value )
 			app.config['SQLALCHEMY_BINDS'][key] = shard_db
+			nodes[key] = {'instance': key}
+		app.config['HASHRING'] = HashRing(nodes)
 
 	db.init_app(app)
 	register_command(app)
@@ -74,16 +77,27 @@ def init_db(app):
 def seed_db(app):
 	app.logger.info("DB -- Seeding Database")
 
-	dbs = with_db(db, app)
-	for item in dbs:
-		repository = UrlInfoRepository(item.session)
-		repository.add_all([
-			UrlInfo("www.google.com:8080/index.html", 0),
-			UrlInfo("www.google.com:8080/index.html%3Fname%3Dedwin", 1),
-			UrlInfo("example.com/%E5%BC%95%E3%81%8D%E5%89%B2%E3%82%8A.html", 0)
-		])
+	hr = app.config['HASHRING']
+
+	url_infos = get_malware_urls(app)
+	for url_info in url_infos:
+		#app.logger.info("Using " + hr[url])
+		db.choose_tenant(hr[url_info.url])
+		repository = UrlInfoRepository(db.session)
+		repository.add(url_info)
+		db.session.close()
+		db.session.remove()
 
 	app.logger.info("DB -- Database is seeded")	
+
+def get_malware_urls(app):
+	seed_file = os.path.join(app.root_path, "resources", "list.txt")
+	file = open(seed_file, "r")
+	url_infos = []
+	for line in file:
+		url = line.replace('\n', '')
+		url_infos.append(UrlInfo(url, 1))
+	return url_infos
 
 def clear_db(app):
 	app.logger.info("DB -- Clear the Database")

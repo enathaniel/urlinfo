@@ -16,7 +16,7 @@ class MultiTenantSQLAlchemy(SQLAlchemy):
             bind = g.tenant
         return super(MultiTenantSQLAlchemy, self).get_engine(app=app, bind=bind)
 
-db = MultiTenantSQLAlchemy()
+db = MultiTenantSQLAlchemy() 
 
 class UrlInfoParams:
 	def __init__(self, url_path, url_full_path, host_and_port, original_path_query_string=None):
