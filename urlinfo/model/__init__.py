@@ -28,7 +28,7 @@ class UrlInfoParams:
 		normalized_full_path = self.url_full_path if self.url_full_path[-1] != '?' else self.url_full_path[:-1]
 		path_and_query_string = normalized_full_path.replace('/urlinfo/1/' + self.host_and_port + '/','')
 
-		self.normalized_path_query_string = urllib.quote(path_and_query_string.encode('utf-8'), safe='')
+		self.normalized_path_query_string = path_and_query_string # urllib.quote(path_and_query_string.encode('utf-8'), safe='')
 
 	def to_urlinfo(self):
 		url = "{0}/{1}".format(self.host_and_port, self.normalized_path_query_string if self.normalized_path_query_string is not None else '')

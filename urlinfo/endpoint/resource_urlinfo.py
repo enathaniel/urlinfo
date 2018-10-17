@@ -11,6 +11,8 @@ def get(host_and_port, original_path_query_string=None):
     current_app.logger.info("urlinfoparam: " + str(url_info_param))
     url_info = url_info_param.to_urlinfo()
     current_app.logger.info("urlinfo: " + str(url_info))
+    print(current_app.config['HASHRING'][url_info.url])
+    db.choose_tenant(current_app.config['HASHRING'][url_info.url])
     repository = UrlInfoRepository(db.session)
     found = repository.get(url_info)
     current_app.logger.info("found: " + str(found))

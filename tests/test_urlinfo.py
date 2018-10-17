@@ -2,7 +2,7 @@ import pytest
 import json
 
 def test_get_successful(client, app):
-	result = client.get("/urlinfo/1/www.google.com:8080/index.html%3Fname%3Dedwin")
+	result = client.get("/urlinfo/1/xxvtrrmbuqshu.biz/news/?s=1681")
 	actual = result.get_json()
 	expected = 1 # malware exist
 	assert actual['malware'] == expected
