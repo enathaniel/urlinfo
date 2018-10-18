@@ -51,16 +51,14 @@ def clear_db_command():
 	''' Clear the databases via CLI: wrapper of clear_db '''
 	clear_db(current_app)
 
-def with_db(db, app):
-	''' Generator to wrap multitenant DBs '''
+def with_db(database, app):
+	''' Generator to wrap multitenant databases '''
 	binds = app.config['SQLALCHEMY_BINDS']
 
 	if binds is not None:
 		for key, value in binds.iteritems():
-			db.choose_tenant(key)
-			yield db
-			db.session.close()
-			db.session.remove()	
+			database.choose_tenant(key)
+			yield database
 
 def init_db(app):
 	app.logger.info("DB -- Initializing Database")
@@ -71,40 +69,43 @@ def init_db(app):
 	for item in dbs:
 		item.create_all()
 		item.session.commit()
+		item.session.remove()
 
 	app.logger.info("DB -- Database is created")
 
 def seed_db(app):
 	app.logger.info("DB -- Seeding Database")
 
-	hr = app.config['HASHRING']
-
+	# extract URL from file
 	url_infos = get_malware_urls(app)
-	for url_info in url_infos:
-		#app.logger.info("Using " + hr[url])
-		db.choose_tenant(hr[url_info.url])
-		repository = UrlInfoRepository(db.session)
-		repository.add(url_info)
-		db.session.close()
-		db.session.remove()
+
+	# add them all to the storage
+	repository = UrlInfoRepository(db, app)
+	repository.add_all(url_infos)
 
 	app.logger.info("DB -- Database is seeded")	
 
 def get_malware_urls(app):
-	seed_file = os.path.join(app.root_path, "resources", "list.txt")
-	file = open(seed_file, "r")
 	url_infos = []
-	for line in file:
+
+	badfilepath = os.path.join(app.root_path, "resources", "badlist.txt")
+	badfile = open(badfilepath, "r")
+	for line in badfile:
 		url = line.replace('\n', '')
 		url_infos.append(UrlInfo(url, 1))
+
+	goodfilepath = os.path.join(app.root_path, "resources", "goodlist.txt")
+	goodfile = open(goodfilepath, "r")
+	for line in goodfile:
+		url = line.replace('\n', '')
+		url_infos.append(UrlInfo(url, 0))
+
 	return url_infos
 
 def clear_db(app):
 	app.logger.info("DB -- Clear the Database")
 
-	dbs = with_db(db, app)
-	for item in dbs:
-		repository = UrlInfoRepository(item.session)
-		repository.delete_all()
+	repository = UrlInfoRepository(db, app)
+	repository.delete_all()
 
 	app.logger.info("DB -- Database is Cleared")

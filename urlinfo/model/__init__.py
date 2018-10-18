@@ -54,20 +54,28 @@ class UrlInfo(db.Model):
 		return s
 
 class UrlInfoRepository:
-	def __init__(self, db_session):
-		self.session = db_session
+	def __init__(self, database, app):
+		self.hr = app.config['HASHRING']
+		self.binds = app.config['SQLALCHEMY_BINDS']
+		self.database = database
 
 	def add(self, url_info):
-		self.session.add(url_info)
-		self.session.commit()
+		self.database.choose_tenant(self.hr[url_info.url])
+		self.database.session.add(url_info)
+		self.database.session.commit()
+		self.database.session.remove()
 
 	def add_all(self, url_infos):
-		self.session.add_all(url_infos)
-		self.session.commit()
+		for url_info in url_infos:
+			self.add(url_info)
 
 	def get(self, url_info):
-		return self.session.query(UrlInfo).filter_by(url=url_info.url).first_or_404()
+		self.database.choose_tenant(self.hr[url_info.url])
+		return self.database.session.query(UrlInfo).filter_by(url=url_info.url).first_or_404()
 
 	def delete_all(self):
-		self.session.query(UrlInfo).delete()
-		self.session.commit()
+		for key,value in self.binds.iteritems():
+			self.database.choose_tenant(key)
+			self.database.session.query(UrlInfo).delete()
+			self.database.session.commit()
+			self.database.session.remove()
