@@ -18,7 +18,8 @@ class DefaultConfig(object):
     DATABASE = 'urlinfo.sqlite'
     SHARDS = {
         'db1': 'db1',
-        'db2': 'db2'
+        'db2': 'db2',
+        'db3': 'db3'
     }    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

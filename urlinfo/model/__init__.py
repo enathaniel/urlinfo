@@ -1,8 +1,22 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.ext.declarative import declarative_base
+from flask import g
 import urllib
 
-db = SQLAlchemy()
+class MultiTenantSQLAlchemy(SQLAlchemy):
+    def choose_tenant(self, bind_key):
+        if hasattr(g, 'tenant'):
+        	pass
+            #raise RuntimeError('Switching tenant in the middle of the request.')
+        g.tenant = bind_key
+
+    def get_engine(self, app=None, bind=None):
+        if bind is None:
+            if not hasattr(g, 'tenant'):
+                raise RuntimeError('No tenant chosen.')
+            bind = g.tenant
+        return super(MultiTenantSQLAlchemy, self).get_engine(app=app, bind=bind)
+
+db = MultiTenantSQLAlchemy() 
 
 class UrlInfoParams:
 	def __init__(self, url_path, url_full_path, host_and_port, original_path_query_string=None):
@@ -14,7 +28,7 @@ class UrlInfoParams:
 		normalized_full_path = self.url_full_path if self.url_full_path[-1] != '?' else self.url_full_path[:-1]
 		path_and_query_string = normalized_full_path.replace('/urlinfo/1/' + self.host_and_port + '/','')
 
-		self.normalized_path_query_string = urllib.quote(path_and_query_string.encode('utf-8'), safe='')
+		self.normalized_path_query_string = path_and_query_string # urllib.quote(path_and_query_string.encode('utf-8'), safe='')
 
 	def to_urlinfo(self):
 		url = "{0}/{1}".format(self.host_and_port, self.normalized_path_query_string if self.normalized_path_query_string is not None else '')
@@ -38,3 +52,30 @@ class UrlInfo(db.Model):
 		malware: [{2}]
 		""".format(self.id, self.url, self.malware)
 		return s
+
+class UrlInfoRepository:
+	def __init__(self, database, app):
+		self.hr = app.config['HASHRING']
+		self.binds = app.config['SQLALCHEMY_BINDS']
+		self.database = database
+
+	def add(self, url_info):
+		self.database.choose_tenant(self.hr[url_info.url])
+		self.database.session.add(url_info)
+		self.database.session.commit()
+		self.database.session.remove()
+
+	def add_all(self, url_infos):
+		for url_info in url_infos:
+			self.add(url_info)
+
+	def get(self, url_info):
+		self.database.choose_tenant(self.hr[url_info.url])
+		return self.database.session.query(UrlInfo).filter_by(url=url_info.url).first_or_404()
+
+	def delete_all(self):
+		for key,value in self.binds.iteritems():
+			self.database.choose_tenant(key)
+			self.database.session.query(UrlInfo).delete()
+			self.database.session.commit()
+			self.database.session.remove()
