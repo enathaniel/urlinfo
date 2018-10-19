@@ -119,11 +119,11 @@ For example:
 
 # Design and Architecture
 
-h1. Diagram
+## Diagram
 
 ![Network Diagram](docs/network-diagram.png)
 
-h1. Implemented
+## Implemented
 
 The URLInfo service is implemented as a REST endpoint returning JSON response. The chosen technology stack is as follows:
 * Service is written in Python, utilizing the following libraries:
@@ -135,7 +135,7 @@ The URLInfo service is implemented as a REST endpoint returning JSON response. T
 		* This is to support the infinite URL list requirement where data size > single hardware capability
 		* Feel free to add/remove database from config.py (search keyword: "SHARDS")
 
-h1. Future Implementation (not yet implemented)
+## Future Implementation (not yet implemented)
 
 * Setup Cluster of HAProxy servers as load-balancer with failover configured
 	* These proxy servers will balance the traffic to multiple URLInfo service servers
