@@ -121,7 +121,7 @@ For example:
 
 h1. Diagram
 
-[Network Diagram](docs/network-diagram.png)
+![Network Diagram](docs/network-diagram.png)
 
 h1. Implemented
 
