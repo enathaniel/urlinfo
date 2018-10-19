@@ -116,3 +116,29 @@ For example:
 * good: http://127.0.0.1:5000/urlinfo/1/google.com/search?ei=pxnIW7CWJZzB0PEPnKyTuAo&q=whitelist+url&oq=whitelist+url&gs_l=psy-ab.3..0l10.1628.1843.0.1977.3.2.0.1.1.0.126.126.0j1.1.0....0...1c.1.64.psy-ab..1.2.127....0.kwayDVX1rY0
 * bad: http://127.0.0.1:5000/urlinfo/1/vensart.net/b1patch.exe
 * bad: http://127.0.0.1:5000/urlinfo/1/xxvtrrmbuqshu.biz/news/?s=1681
+
+# Design and Architecture
+
+h1. Diagram
+
+[Network Diagram](docs/network-diagram.png)
+
+h1. Implemented
+
+The URLInfo service is implemented as a REST endpoint returning JSON response. The chosen technology stack is as follows:
+* Service is written in Python, utilizing the following libraries:
+	* [Flask](http://flask.pocoo.org/docs/1.0/tutorial/) (simple, lightweight, easy to learn) to handle Request - Response (return JSON object)
+	* [SQLAlchemy](https://www.sqlalchemy.org/) as lightweight ORM 
+		* provide ability to switch between SQLite3 for Dev/Testing to MySQL/PostgreSQL in Production with only config changes
+	* PyTest for automation testing framework and TestSuite runner
+	* [uhashring](https://github.com/ultrabug/uhashring) [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) implementation to support Database sharding
+		* This is to support the infinite URL list requirement where data size > single hardware capability
+		* Feel free to add/remove database from config.py (search keyword: "SHARDS")
+
+h1. Future Implementation (not yet implemented)
+
+* Setup Cluster of HAProxy servers as load-balancer with failover configured
+	* These proxy servers will balance the traffic to multiple URLInfo service servers
+* Switch SQLite3 to MySQL/PostgreSQL
+* Setup Cluster of Memcached to increase performance
+	* Our Data Access layer can be extended to hit from cache before hitting the actual DB
