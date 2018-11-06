@@ -1,4 +1,4 @@
 www.google.com:8080/index.html?name=edwin&company=sap
-www.sap.com
-www.cisco.com
+www.sap.com/
+www.cisco.com/
 google.com/search?ei=pxnIW7CWJZzB0PEPnKyTuAo&q=whitelist+url&oq=whitelist+url&gs_l=psy-ab.3..0l10.1628.1843.0.1977.3.2.0.1.1.0.126.126.0j1.1.0....0...1c.1.64.psy-ab..1.2.127....0.kwayDVX1rY0
